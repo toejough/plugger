@@ -18,8 +18,8 @@ Features:
 
 
 # [ Imports ]
-import pkg_resources
 import warnings
+import pkg_resources
 
 
 # [ API ]
@@ -54,7 +54,6 @@ class Plugger:
     # [ API ]
     def resolve(self, target, *, conflict_resolver=get_external_entry_point, output=print):
         """Resolve the plugin for the given target."""
-        plugins = {}
         output(f"Loading plugins for {self._namespace}...")
         namespace_entry_points = pkg_resources.iter_entry_points(self._namespace)
         namespace_entry_points = list(namespace_entry_points)
