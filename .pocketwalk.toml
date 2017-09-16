@@ -14,10 +14,10 @@ preconditions = []
 #[tools.dodgy]
 #trigger_paths = "**/*.py"
 
-#[tools.flake8]
-#config = "{affected_targets}"
-#target_paths = "**/*.py"
-#trigger_paths = ".flake8"
+[tools.flake8]
+config = "{affected_targets}"
+target_paths = "**/*.py"
+trigger_paths = ".flake8"
 
 #[tools.pytest]
 ## config = [

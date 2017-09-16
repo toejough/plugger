@@ -63,7 +63,10 @@ class Plugger:
         if isinstance(plugin, target):
             output(f"  {entry_point.module_name}:{entry_point.name}")
         else:
-            raise RuntimeError(f"Plugin {entry_point.module_name}:{entry_point.name} is not a subclass of the target ABC ({target})")
+            raise RuntimeError(
+                f"Plugin {entry_point.module_name}:{entry_point.name}"
+                f" is not a subclass of the target ABC ({target})",
+            )
         return plugin
 
     def resolve_any(self, target, *, output=print):

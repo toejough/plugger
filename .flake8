@@ -1,0 +1,43 @@
+[flake8]
+# lenient line length
+max-line-length = 120
+
+# ignore specific rules
+ignore =
+    # ignore strict line length rule
+    E501,
+    # forget inline quotes, because apostrophes are a thing in user strings, but
+    # I want single quotes in non-user strings (like dictionary keys)
+    Q000,
+    # One liners can be lambda's.  making such a small function is dumb.
+    E731,
+    T000,  # todo's ok till v1.0.0
+    I201,  # says missing newline between sections or imports?  I don't think this rule is applied like I expect.
+
+# actively select specific rules/sets
+select =
+    # bugbear checks
+    B,
+    # complexity checks
+    C,
+    # docstring checks
+    D,
+    # errors
+    E,
+    # pyflakes failures
+    F,
+    # import errors
+    I,
+    # warnings
+    W,
+    # format strings
+    P,
+    # todos
+    T,
+    # quotes
+    Q,
+    # optional bugbear checks
+    B9
+
+# set import order rules
+import-order-style = edited

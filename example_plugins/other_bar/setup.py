@@ -40,6 +40,6 @@ setup(
     entry_points={
         'foo': [
             'Base = other:Bar',
-        ]
+        ],
     },
 )
