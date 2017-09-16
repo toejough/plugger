@@ -7,12 +7,12 @@ target_paths = "*.py plugger/**/*.py"
 trigger_paths = ".pylintrc"
 preconditions = []
 
-#[tools.vulture]
-#config = "."
-#trigger_paths = "**/*.py"
+[tools.vulture]
+config = "."
+trigger_paths = "**/*.py"
 
-#[tools.dodgy]
-#trigger_paths = "**/*.py"
+[tools.dodgy]
+trigger_paths = "**/*.py"
 
 [tools.flake8]
 config = "{affected_targets}"

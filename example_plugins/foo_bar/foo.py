@@ -30,3 +30,9 @@ def main():
     bars = plugger.Plugger('foo').resolve_any(Base)
     for bar in bars:
         print(bar.bar())
+
+
+# [ Static Analysis ]
+# API's used by code Vulture can't see
+Bar
+main

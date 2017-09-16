@@ -84,3 +84,12 @@ class Plugger:
             else:
                 warnings.warn(f"Plugin {entry_point.module_name}:{entry_point.name} is not a subclass of the target ABC ({target})")
         return valid_plugins
+
+
+# [ Vulture Whitelist ]
+# Used externally
+# Whitelist here for vulture
+# Disable pylint error for just the whitelist
+# pylint: disable=pointless-statement
+Plugger.resolve
+# pylint: enable=pointless-statement
