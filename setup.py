@@ -37,7 +37,6 @@ setup(
     ],
     keywords="setuptools entrypoint plugin",
     packages=find_packages(),
-    install_requires=['runaway==0.2.1', 'pytoml', 'wrapt'],
     extras_require={
         'checkers': [
             'pylint', 'flake8', 'dodgy', 'vulture',
