@@ -23,11 +23,6 @@ import warnings
 
 
 # [ API ]
-# XXX validate ABC & raise if no match
-# XXX allow multiple plugins for things that can just be called in parallel
-# XXX supply a default conflict resolver, and allow overrides
-
-
 def get_external_entry_point(entry_points, *, target, namespace):
     """Return the single external entry_point if possible, or raise an exception."""
     if not entry_points:
