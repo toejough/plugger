@@ -18,12 +18,26 @@ Features:
 
 
 # [ Imports ]
+# [ -Python ]
+import typing
 import warnings
+# [ -Third Party ]
 import pkg_resources
 
 
+# [ TypeVars ]
+# Type, not constant
+# pylint: disable=invalid-name
+BaseClass = typing.TypeVar('BaseClass')
+# pylint: enable=invalid-name
+
+
 # [ API ]
-def get_external_entry_point(entry_points, *, target, namespace):
+def get_external_entry_point(
+        entry_points: typing.Sequence[pkg_resources.EntryPoint], *,
+        target: typing.Type[BaseClass],
+        namespace: str,
+) -> pkg_resources.EntryPoint:
     """Return the single external entry_point if possible, or raise an exception."""
     if not entry_points:
         raise RuntimeError(f"No entry_points found for {namespace}")
@@ -47,16 +61,19 @@ def get_external_entry_point(entry_points, *, target, namespace):
 class Plugger:
     """Plugin management tool."""
 
-    def __init__(self, namespace):
+    def __init__(self, namespace: str) -> None:
         """Init the state."""
         self._namespace = namespace
 
     # [ API ]
-    def resolve(self, target, *, conflict_resolver=get_external_entry_point, output=print):
+    def resolve(
+            self, target: typing.Type[BaseClass], *,
+            conflict_resolver: typing.Callable=get_external_entry_point,
+            output: typing.Callable=print,
+    ) -> BaseClass:
         """Resolve the plugin for the given target."""
         output(f"Loading plugins for {self._namespace}...")
-        namespace_entry_points = pkg_resources.iter_entry_points(self._namespace)
-        namespace_entry_points = list(namespace_entry_points)
+        namespace_entry_points = list(pkg_resources.iter_entry_points(self._namespace))
         target_entry_points = [ep for ep in namespace_entry_points if ep.name == target.__name__]
         entry_point = conflict_resolver(target_entry_points, target=target, namespace=self._namespace)
         plugin = entry_point.load()()
@@ -69,9 +86,11 @@ class Plugger:
             )
         return plugin
 
-    def resolve_any(self, target, *, output=print):
+    def resolve_any(
+            self, target: typing.Type[BaseClass], *,
+            output: typing.Callable=print,
+    ) -> typing.List[BaseClass]:
         """Resolve the plugins for the given target."""
-        plugins = {}
         output(f"Loading plugins for {self._namespace}...")
         namespace_entry_points = pkg_resources.iter_entry_points(self._namespace)
         target_entry_points = [ep for ep in namespace_entry_points if ep.name == target.__name__]

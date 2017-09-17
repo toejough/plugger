@@ -33,11 +33,11 @@ trigger_paths = ".flake8"
 #trigger_paths = "**/*.py"
 #preconditions = ['pylint', 'vulture', 'flake8', 'dodgy']
 
-# [tools.mypy]
-# config = [
-#     "--strict",
-#     "--ignore-missing-imports",
-#     "--custom-typeshed-dir", "/Users/joe/repos/third-party/typeshed/",
-#     "{changed_target_paths}",
-# ]
-# target_paths = [ "setup.py", "pocketwalk.py", "test_pocketwalk.py",]
+ [tools.mypy]
+ config = [
+     "--strict",
+     "--ignore-missing-imports",
+     #"--custom-typeshed-dir", "/Users/joe/repos/third-party/typeshed/",
+     "plugger",
+ ]
+trigger_paths = "plugger/**/*.py"
