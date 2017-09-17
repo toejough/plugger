@@ -67,3 +67,33 @@ class Foo: ...
 
 foo_plugin = plugger.Plugger('app').resolve(Foo)
 ```
+
+## Loading Multiple Plugins for a Single Interface
+
+Any number of plugins may implement any given interface.  If you have multiple plugins for a single interface installed, and you want to load them all, use `resolve_any`, which will return a list of discovered/loaded plugins for the given interface, instead of just one.
+
+```python
+# "app" package
+import plugger
+
+class Foo: ...
+
+all_foo_plugins = plugger.Plugger('app').resolve_any(Foo)
+```
+
+## Conflict Resolution for Multiple Plugins
+
+Any number of plugins may implement any given interface.  If you have multiple plugins for a single interface installed, and you only want one, you will likely need to provide a conflict resolution function to `resolve`.  The default resolution function will return one plugin if only one was found, the external plugin if both the interface-defining package and a single external package define plugins, and will raise an exception if multiple external plugins are found.
+
+```python
+# "app" package
+import plugger
+
+class Foo: ...
+
+def resolve_first_entry_point(entry_points, *, target, namespace):
+    """Return the first entry point."""
+    return entry_points[0]
+    
+foo_plugin = plugger.Plugger('app').resolve(Foo, conflict_resolver=resolve_first_entry_point)
+```
