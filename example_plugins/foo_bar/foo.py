@@ -22,14 +22,17 @@ class Bar(Base):
 
     def bar(self):
         """Return the bar message."""
-        return 'bar'
+        return 'foo bar'
 
 
-def main():
+def main(multi=True):
     """Resolve and run the plugins."""
-    bars = plugger.Plugger('foo').resolve_any(Base)
-    for bar in bars:
-        print(bar.bar())
+    if multi:
+        bars = plugger.resolve_any(Base)
+        for bar in bars:
+            print(bar.bar())
+    else:
+        print(plugger.resolve(Base).bar())
 
 
 # [ Static Analysis ]

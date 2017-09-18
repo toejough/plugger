@@ -11,7 +11,7 @@ Features:
 * Resolves entrypoint conflicts by preferring non-internal plugins, then
   raising an exception if there are still more than 1.
 * Conflict resolver may be overridden to provide more fine-grained control.
-* Validates chosen plugin is an instance of the target ABC.
+* Validates chosen plugin is an instance of the interface ABC.
 * Multi-plugin support - if multiple plugins may implement an API
   simultaneously, all matching plugins are returned.
 """
@@ -34,75 +34,61 @@ BaseClass = typing.TypeVar('BaseClass')
 
 # [ API ]
 def get_external_entry_point(
-        entry_points: typing.Sequence[pkg_resources.EntryPoint], *,
-        target: typing.Type[BaseClass],
+        plugins: typing.Sequence[BaseClass], *,
+        interface: typing.Type[BaseClass],
         namespace: str,
-) -> pkg_resources.EntryPoint:
-    """Return the single external entry_point if possible, or raise an exception."""
-    if not entry_points:
-        raise RuntimeError(f"No entry_points found for {namespace}")
-    if len(entry_points) == 1:
-        return entry_points[0]
+) -> BaseClass:
+    """Return the single external plugin if possible, or raise an exception."""
+    external_plugins = []
+    for this_plugin in plugins:
+        plugin_module = this_plugin.__module__.split('.')[0]
+        interface_module = interface.__module__.split('.')[0]
+        if plugin_module != interface_module:
+            external_plugins.append(this_plugin)
 
-    external_entry_points = []
-    for this_entry_point in entry_points:
-        entry_point_module = this_entry_point.module_name.split('.')[0]
-        target_module = target.__module__.split('.')[0]
-        if entry_point_module != target_module:
-            external_entry_points.append(this_entry_point)
+    num_external_plugins = len(external_plugins)
+    if 1 < len(external_plugins):
+        raise RuntimeError(f"Too many ({num_external_plugins}) plugins for {namespace}.")
 
-    num_external_entry_points = len(external_entry_points)
-    if 1 < len(external_entry_points):
-        raise RuntimeError(f"Too many ({num_external_entry_points}) plugins for {namespace}.")
-
-    return external_entry_points[0]
+    return external_plugins[0]
 
 
-class Plugger:
-    """Plugin management tool."""
+def resolve(
+    interface: typing.Type[BaseClass], *,
+    namespace: typing.Optional[str]=None,
+    conflict_resolver: typing.Callable[..., BaseClass]=get_external_entry_point,
+) -> BaseClass:
+    """Resolve the plugin for the given interface."""
+    plugins = resolve_any(interface, namespace=namespace)
+    if not plugins:
+        raise RuntimeError(f"No plugins found for {namespace}")
+    elif 1 < len(plugins):
+        plugin = conflict_resolver(plugins, interface=interface, namespace=namespace)
+    else:
+        plugin = plugins[0]
+    return plugin
 
-    def __init__(self, namespace: str) -> None:
-        """Init the state."""
-        self._namespace = namespace
 
-    # [ API ]
-    def resolve(
-            self, target: typing.Type[BaseClass], *,
-            conflict_resolver: typing.Callable=get_external_entry_point,
-            output: typing.Callable=print,
-    ) -> BaseClass:
-        """Resolve the plugin for the given target."""
-        output(f"Loading plugins for {self._namespace}...")
-        namespace_entry_points = list(pkg_resources.iter_entry_points(self._namespace))
-        target_entry_points = [ep for ep in namespace_entry_points if ep.name == target.__name__]
-        entry_point = conflict_resolver(target_entry_points, target=target, namespace=self._namespace)
-        plugin = entry_point.load()()
-        if isinstance(plugin, target):
-            output(f"  {entry_point.module_name}:{entry_point.name}")
+def resolve_any(
+    interface: typing.Type[BaseClass], *,
+    namespace: typing.Optional[str]=None,
+) -> typing.List[BaseClass]:
+    """Resolve the plugins for the given interface."""
+    if namespace is None:
+        namespace = interface.__module__.split('.')[0]
+    namespace_entry_points = pkg_resources.iter_entry_points(namespace)
+    interface_entry_points = [ep for ep in namespace_entry_points if ep.name == interface.__name__]
+    plugins = [ep.load()() for ep in interface_entry_points]
+    valid_plugins = []
+    for entry_point, this_plugin in zip(interface_entry_points, plugins):
+        if isinstance(this_plugin, interface):
+            valid_plugins.append(this_plugin)
         else:
-            raise RuntimeError(
-                f"Plugin {entry_point.module_name}:{entry_point.name}"
-                f" is not a subclass of the target ABC ({target})",
+            warnings.warn(
+                f"Plugin {entry_point.module_name}:{entry_point.name} is not a subclass"
+                f" of the interface ABC ({interface})",
             )
-        return plugin
-
-    def resolve_any(
-            self, target: typing.Type[BaseClass], *,
-            output: typing.Callable=print,
-    ) -> typing.List[BaseClass]:
-        """Resolve the plugins for the given target."""
-        output(f"Loading plugins for {self._namespace}...")
-        namespace_entry_points = pkg_resources.iter_entry_points(self._namespace)
-        target_entry_points = [ep for ep in namespace_entry_points if ep.name == target.__name__]
-        plugins = [ep.load()() for ep in target_entry_points]
-        valid_plugins = []
-        for entry_point, this_plugin in zip(target_entry_points, plugins):
-            if isinstance(this_plugin, target):
-                output(f"  {entry_point.module_name}:{entry_point.name}")
-                valid_plugins.append(this_plugin)
-            else:
-                warnings.warn(f"Plugin {entry_point.module_name}:{entry_point.name} is not a subclass of the target ABC ({target})")
-        return valid_plugins
+    return valid_plugins
 
 
 # [ Vulture Whitelist ]
@@ -110,5 +96,5 @@ class Plugger:
 # Whitelist here for vulture
 # Disable pylint error for just the whitelist
 # pylint: disable=pointless-statement
-Plugger.resolve
+resolve
 # pylint: enable=pointless-statement
