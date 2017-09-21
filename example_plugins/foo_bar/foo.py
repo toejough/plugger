@@ -6,6 +6,7 @@
 
 # [ Imports ]
 import plugger
+import enum
 
 
 # [ API ]
@@ -25,14 +26,33 @@ class Bar(Base):
         return 'foo bar'
 
 
-def main(multi=True):
-    """Resolve and run the plugins."""
-    if multi:
-        bars = plugger.resolve_any(Base)
-        for bar in bars:
-            print(bar.bar())
+class Level(enum.Enum):
+    """Level of resolution."""
+
+    SINGLE = enum.auto()
+    MULTI = enum.auto()
+    STRING = enum.auto()
+    ALL = enum.auto()
+
+
+def main(level=Level.SINGLE):
+    """Load and run the plugins."""
+    if level is Level.SINGLE:
+        print(plugger.load_best_plugin_for(Base)().bar())
+    elif level is Level.MULTI:
+        bases = plugger.load_all_plugins_for(Base)
+        for this_base in bases:
+            print(this_base().bar())
+    elif level is Level.STRING:
+        base_entry_points = plugger.get_filtered_entry_points(group='foo', name='Base')
+        for this_entry_point in base_entry_points:
+            print(this_entry_point)
+    elif level is Level.ALL:
+        entry_points = plugger.discover_entry_points()
+        for this_entry_point in entry_points:
+            print(this_entry_point)
     else:
-        print(plugger.resolve(Base).bar())
+        raise RuntimeError(f"Unknown level ({level})")
 
 
 # [ Static Analysis ]

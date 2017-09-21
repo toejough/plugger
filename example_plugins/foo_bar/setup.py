@@ -41,5 +41,8 @@ setup(
         'foo': [
             'Base = foo:Bar',
         ],
+        'food': [
+            'Base = foo:Bar',
+        ],
     },
 )
