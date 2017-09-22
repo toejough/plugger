@@ -12,7 +12,7 @@ from setuptools import setup, find_packages
 # [ Main ]
 setup(
     name='plugger',
-    version='0.2.0',
+    version='0.3.0',
     description='Plugger:  A simple setuptools-entrypoints-based plugin manager.',
     url='https://github.com/toejough/plugger',
     author='toejough',
