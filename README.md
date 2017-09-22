@@ -2,17 +2,28 @@ Setuptools entry-points-based plugin library.
 
 # Features
 
-* Discovery: Discover plugins based on entrypoints defined in the `setup.py` of installed packages.
-* Filtering: Filter entrypoints based on either strings (lower-level API) or a base class (higher level API - the entrypoint attributes  to filter on are determined by inspecting the base class).
-* Loading and Validation: Load plugins from entry points, and validate by ensuring the plugins implement a base class.
-* Conflict Resolution: If a single plugin is desired, resolve multi-plugin conflicts.  The default resolver prefers non-internal plugins, then raises an exception if there are still more than 1.
+* Discovery:
+    Discover plugins based on entrypoints defined in the
+    `setup.py` of installed packages.
+* Filtering:
+    Filter entrypoints based on either strings (lower-level API)
+    or a base class (higher level API - the entrypoint attributes
+    to filter on are determined by inspecting the base class).
+* Loading and Validation:
+    Load plugins from entry points, and validate by ensuring
+    the plugins implement a base class.
+* Conflict Resolution:
+    If a single plugin is desired, resolve multi-plugin conflicts.
+    The default resolver prefers non-internal plugins, then raises
+    an exception if there are still more than 1.
 
-# API Flexibility Levels
+# High-/low-level API's
 
-* maximum magic: get a single conflict resolved plugin for an interface.
-* magic: get all plugins for an interface.
-* control: get all entry points, filtered by group & name.
-* maximum control: get all discoverable entry points.
+* high level:
+    * `get_best_plugin_for`: get a single conflict resolved plugin for an interface
+    * `get_all_plugins_for`: get all plugins for an interface
+* low level:
+    * `get_entry_points`: get all entry points, optionally filtered by group & name
 
 # Examples
 
@@ -51,8 +62,8 @@ Plugins need to be advertised as setuptools entrypoints via their `setup.py`
 setup(
     ...,
     entry_points={  # specify entry points
-        'app': [  # declare that we have entry points for the 'app' entrypoint namespace
-            'Foo = plugin:Foo',  # declare entry point 'Foo', which is our 'Foo' class.
+        'app': [  # declare that we have entry points for the 'app' entrypoint group
+            'Foo = plugin:Foo',  # declare entry point named 'Foo', which is our 'Foo' class.
         ],
     },
 )
@@ -85,3 +96,37 @@ class Foo: ...
 
 all_foo_plugins = plugger.load_all_plugins_for(Foo)
 ```
+
+## Get Arbitrary Entry Points
+
+If you'd like finer-grained control over what plugins get loaded, use `get_entry_points`.
+You can filter by group, name, both, or none (which returns all the entrypoints on the system).
+
+```python
+# "app" package
+import plugger
+
+# Entry points from any package
+# ... in a group named 'app'
+# ... where the entry point is named 'foo'
+app_foo_entry_points = plugger.get_entry_points(group='app', name='foo')
+
+# Entry points from any package
+# ... in a group named 'app'
+# ... with any entry point name
+app_all_entry_points = plugger.get_entry_points(group='app')
+
+# Entry points from any package
+# ... with any group name
+# ... where the entry point is named 'foo'
+all_foo_entry_points = plugger.get_entry_points(name='foo')
+
+# Entry points from any package
+# ... with any group name
+# ... with any entry point name
+all_entry_points = plugger.get_entry_points()
+```
+
+Once you have entry points, you can inspect them for things like source package, source package version, group name, or entry point name.  You can also load the plugin via `load`.
+
+If that functionality isn't enough, you may also access the raw `pkg_resources.EntryPoint` oject via `raw`.

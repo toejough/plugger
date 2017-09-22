@@ -44,11 +44,11 @@ def main(level=Level.SINGLE):
         for this_base in bases:
             print(this_base().bar())
     elif level is Level.STRING:
-        base_entry_points = plugger.get_filtered_entry_points(group='foo', name='Base')
+        base_entry_points = plugger.get_entry_points(group='foo', name='Base')
         for this_entry_point in base_entry_points:
             print(this_entry_point)
     elif level is Level.ALL:
-        entry_points = plugger.discover_entry_points()
+        entry_points = plugger.get_entry_points()
         for this_entry_point in entry_points:
             print(this_entry_point)
     else:
