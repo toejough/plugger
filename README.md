@@ -58,9 +58,9 @@ setup(
 )
 ```
 
-## Loading A Plugin
+## Loading a Plugin
 
-A single plugin gets loaded via the `get_best_plugin_for` function, which identifies and loads the best plugin on the system which implements the given base class.
+A single plugin gets loaded via the `load_best_plugin_for` function, which identifies and loads the best plugin on the system which implements the given base class.
 
 ```python
 # "app" package
@@ -68,14 +68,14 @@ import plugger
 
 class Foo: ...
 
-foo_plugin = plugger.get_best_plugin_for(Foo)
+foo_plugin = plugger.load_best_plugin_for(Foo)
 ```
 
-As the name `get_best_plugin_for` implies, any number of plugins may implement any given interface.  If a single plugin is found, it is returned.  If multiple plugins are found, the `resolve_conflict` function (a parameter of `get_best_plugin_for`) is called.  A default resolution function is provided for the case where a package includes its own default plugins, but there may be an overriding external plugin installed elsewhere on the system.  It will return the external plugin if there is only one, but will raise an exception if multiple external plugins are found for an interface.
+As the name `load_best_plugin_for` implies, any number of plugins may implement any given interface.  If a single plugin is found, it is returned.  If multiple plugins are found, the `resolve_conflict` function (a parameter of `get_best_plugin_for`) is called.  A default resolution function is provided for the case where a package includes its own default plugins, but there may be an overriding external plugin installed elsewhere on the system.  It will return the external plugin if there is only one, but will raise an exception if multiple external plugins are found for an interface.
 
 ## Loading Multiple Plugins for a Single Interface
 
-If you have multiple plugins for a single interface installed, and you want to load them all, use `get_all_plugins_for`, which will return a list of plugins for the given interface, instead of just one.
+If you have multiple plugins for a single interface installed, and you want to load them all, use `load_all_plugins_for`, which will return a list of plugins for the given interface, instead of just one.
 
 ```python
 # "app" package
@@ -83,5 +83,5 @@ import plugger
 
 class Foo: ...
 
-all_foo_plugins = plugger.get_all_plugins_for(Foo)
+all_foo_plugins = plugger.load_all_plugins_for(Foo)
 ```
