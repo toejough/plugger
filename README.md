@@ -50,7 +50,7 @@ Plugins should inherit from the class defining the plugin's interface.
 # Plugin implementation
 import app
 
-class Foo(app.Foo):
+class PluginFoo(app.Foo):
     def foo(self):
         return 'plugin foo'
 ```
@@ -63,7 +63,7 @@ setup(
     ...,
     entry_points={  # specify entry points
         'app': [  # declare that we have entry points for the 'app' entrypoint group
-            'Foo = plugin:Foo',  # declare entry point named 'Foo', which is our 'Foo' class.
+            'Foo = plugin:PluginFoo',  # declare entry point named 'Foo', which is our 'Foo' class.
         ],
     },
 )
@@ -80,6 +80,12 @@ import plugger
 class Foo: ...
 
 foo_plugin = plugger.load_best_plugin_for(Foo)
+
+# foo_plugin is now PluginFoo.
+instance = foo_plugin()
+result = instance.foo()
+
+# result: 'plugin foo'
 ```
 
 As the name `load_best_plugin_for` implies, any number of plugins may implement any given interface.  If a single plugin is found, it is returned.  If multiple plugins are found, the `resolve_conflict` function (a parameter of `get_best_plugin_for`) is called.  A default resolution function is provided for the case where a package includes its own default plugins, but there may be an overriding external plugin installed elsewhere on the system.  It will return the external plugin if there is only one, but will raise an exception if multiple external plugins are found for an interface.
@@ -95,6 +101,11 @@ import plugger
 class Foo: ...
 
 all_foo_plugins = plugger.load_all_plugins_for(Foo)
+
+# assuming 'Foo' is called out as a plugin for itself in setup.py, and
+# the aforementioned 'plugin' package is installed with 'PluginFoo' also
+# listed as a plugin for Foo...
+# all_foo_plugins: [Foo, PluginFoo]
 ```
 
 ## Get Arbitrary Entry Points
@@ -103,28 +114,61 @@ If you'd like finer-grained control over what plugins get loaded, use `get_entry
 You can filter by group, name, both, or none (which returns all the entrypoints on the system).
 
 ```python
+# setup.py for the "app" package
+setup(
+    ...,
+    entry_points={
+        'app': [
+            'Foo = plugin:Foo',
+            'Bar = plugin:Bar',
+        ],
+    },
+)
+```
+
+```python
+# setup.py for the "plugin" package
+setup(
+    ...,
+    entry_points={
+        'app': [
+            'Foo = plugin:PluginFoo',
+            'Bar = plugin:PluginBar',
+        ],
+        'other': [
+            'Foo = plugin:PluginOtherFoo',
+        ],
+    },
+)
+```
+
+```python
 # "app" package
 import plugger
 
 # Entry points from any package
 # ... in a group named 'app'
-# ... where the entry point is named 'foo'
-app_foo_entry_points = plugger.get_entry_points(group='app', name='foo')
+# ... where the entry point is named 'Foo'
+app_foo_entry_points = plugger.get_entry_points(group='app', name='Foo')
+# [ app:app:Foo, plugin:app:Foo ]
 
 # Entry points from any package
 # ... in a group named 'app'
 # ... with any entry point name
 app_all_entry_points = plugger.get_entry_points(group='app')
+# [ app:app:Foo, app:app:Bar, plugin:app:Foo, plugin:app:Bar ]
 
 # Entry points from any package
 # ... with any group name
-# ... where the entry point is named 'foo'
-all_foo_entry_points = plugger.get_entry_points(name='foo')
+# ... where the entry point is named 'Foo'
+all_foo_entry_points = plugger.get_entry_points(name='Foo')
+# [ app:app:Foo, plugin:app:Foo, plugin:other:Foo ]
 
 # Entry points from any package
 # ... with any group name
 # ... with any entry point name
 all_entry_points = plugger.get_entry_points()
+# [ app:app:Foo, app:app:Bar, plugin:app:Foo, plugin:app:Bar, plugin:other:Foo ]
 ```
 
 Once you have entry points, you can inspect them for things like source package (`entry_point.package`), source package version (`entry_point.version`), group name (`entry_point.group`), or entry point name (`entry_point.name`).  You can also load the plugin via `entry_point.load()`.
