@@ -20,8 +20,8 @@ Setuptools entry-points-based plugin library.
 # High-/low-level API's
 
 * high level:
-    * `get_best_plugin_for`: get a single conflict resolved plugin for an interface
-    * `get_all_plugins_for`: get all plugins for an interface
+    * `load_best_plugin_for`: load a single conflict resolved plugin for an interface
+    * `load_all_plugins_for`: load all plugins for an interface
 * low level:
     * `get_entry_points`: get all entry points, optionally filtered by group & name
 
