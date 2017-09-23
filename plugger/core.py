@@ -80,8 +80,11 @@ class EntryPoint:
     Entry point object.
 
     Wraps a raw entry point with a cleaner API.
-
     The original entry point is available via the `raw` property.
+
+    This object should not be instantiated directly by users.  Use the
+    `get_entry_points` function instead.  Anyone defining the `discover`
+    parameter to that function may have to instantiate these objects.
     """
 
     def __init__(
@@ -95,7 +98,17 @@ class EntryPoint:
 
     @property
     def raw(self) -> pkg_resources.EntryPoint:
-        """Return the raw entry point object being wrapped."""
+        """
+        Return the raw entry point object being wrapped.
+
+        Note that no guarantees are made about this object.  This is provided
+        in case you know what is being wrapped, and you want to access it directly
+        in order to access some data which is not exposed by the EntryPoint
+        object, but the raw object is not defined or controlled by this project,
+        and its API is subject to arbitrary changes.  It is provided so that if
+        you want, you can get into the nitty gritty low level details, but use it
+        at your own risk.
+        """
         return self.__raw_entry_point
 
     @property
@@ -143,7 +156,18 @@ def get_entry_points(
     group: typing.Optional[str]=None,
     discover: typing.Callable=_discover_entry_points,
 ) -> typing.List[EntryPoint]:
-    """Get the entry points for the given filter options."""
+    """
+    Get the entry points for the given filter options.
+
+    Parameters:
+        name - the entry point name to filter by.  If none, no name filter will be used.
+        group - the entry point group name to filter by  If none, no name filter will be used.
+        discover - a function, taking no arguments, which returns EntryPoint objects for all
+            the entry points on the system.  The default value is good enough for most cases,
+            but this dependency is exposed for testing or advanced use.
+
+    If both name and group are left empty, all discovered entry points will be returned.
+    """
     return [ep for ep in discover() if (
         (name is None or ep.name == name) and
         (group is None or ep.group == group)
@@ -154,7 +178,25 @@ def load_all_plugins_for(
     interface: type, *,
     get_filtered: typing.Callable=get_entry_points,
 ) -> typing.List[type]:
-    """Load the plugins for the given interface."""
+    """
+    Load the plugins for the given interface.
+
+    Parameters:
+        interface - a class to use both as the source of correct group/name
+            attributes for target plugins, but also as the base class for
+            validating those plugins on load.
+        get_filtered - a function, taking group and name arguments, and returning
+            a list of EntryPoint objects that match.  The default value is good
+            enough for most cases, but this dependency is exposed for testing or
+            advanced use.
+
+    Returns a list of plugins which match the interface.
+
+    Plugins are found according to the following rules:
+    * in a group matching the root module the interface is defined in.
+    * has a name matching the name of the interface.
+    * is a subclass of the interface.
+    """
     group = interface.__module__.split('.')[0]
     name = interface.__name__
     entry_points = get_filtered(name=name, group=group)
@@ -176,7 +218,33 @@ def load_best_plugin_for(
     resolve_conflict: typing.Callable[..., type]=_get_external_plugin,
     load_all: typing.Callable=load_all_plugins_for,
 ) -> type:
-    """Resolve the plugin for the given interface."""
+    """
+    Load the plugin for the given interface.
+
+    Parameters:
+        interface - a class to use both as the source of correct group/name
+            attributes for target plugins, but also as the base class for
+            validating those plugins on load.
+        resolve_conflict - a function, taking a list of plugins and an interface,
+            and returning a single plugin.  The default value returns the only plugin
+            defined in a different root module than the given interface, if there is
+            only one.  Else it raises a RuntimeError.  This is exposed with the expectation
+            that while this behavior is generally correct, there are going to be exceptions,
+            and it may not always be sufficient, and callers will want to supply custom
+            implementations for those cases.
+        load_all - a function, taking an interface argument, and returning
+            a list of EntryPoint objects that match.  The default value is good
+            enough for most cases, but this dependency is exposed for testing or
+            advanced use.
+
+    Returns the single plugin which matches the interface and survives conflict resolution.
+
+    Plugins are found according to the following rules:
+    * in a group matching the root module the interface is defined in.
+    * has a name matching the name of the interface.
+    * is a subclass of the interface.
+    * is chosen by the resolve_conflict function, if there are multiple matching plugins.
+    """
     plugins = load_all(interface)
     if not plugins:
         raise RuntimeError(f"No plugins found for {interface}")

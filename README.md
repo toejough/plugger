@@ -236,3 +236,256 @@ all_entry_points = plugger.get_entry_points()
 Once you have entry points, you can inspect them for things like source package (`entry_point.package`), source package version (`entry_point.version`), group name (`entry_point.group`), or entry point name (`entry_point.name`).  You can also load the plugin via `entry_point.load()`.
 
 If that functionality isn't enough, you may also access the raw `pkg_resources.EntryPoint` object via `entry_point.raw`.
+
+# API Docs
+
+## class: `EntryPoint`
+
+Entry point object.
+
+Wraps a `pkg_resources.EntryPoint` with a cleaner API.
+The original entry point is available via the `raw` property.
+
+This object should not be instantiated directly by users.  Use the
+`get_entry_points` function instead.
+
+```python
+def __init__(
+    self, *,
+    raw_entry_point: pkg_resources.EntryPoint,
+    group: str,
+) -> None:
+```
+
+Parameters:
+
+* `raw_entry_point` - the raw entry point to wrap
+* `group` - the group name the entry point was defined under
+
+### property: `raw`
+
+The raw entry point object being wrapped.
+
+If using the default `discover` function passed to `get_entry_points`, this
+object will currently either be `None` or `pkg_resources.EntryPoint`.
+
+Note that no guarantees are made about this object.  This is provided
+in case you know what is being wrapped, and you want to access it directly
+in order to access some data which is not exposed by the EntryPoint
+object, but the raw object is not defined or controlled by this project,
+and its API is subject to arbitrary changes.  It is provided so that if
+you want, you can get into the nitty gritty low level details, but use it
+at your own risk.
+
+### property: `package`
+
+A `str` or `None`.  If `str`, it's the name of the package the entry point was defined in.
+
+### property: `version`
+
+A `str` or `None`.  If `str`, it's the version of the package the entry point was defined in.
+
+### property: `group`
+
+A `str`.  The group the entry point was defined in.
+
+### property: `name`
+
+A `str`.  The name the entry point was defined as.
+
+### method: load
+
+```python
+def load() -> typing.Any
+```
+
+Load the plugin from the entry point.
+
+
+## function: `get_entry_points`
+
+```python
+def get_entry_points(
+    *,
+    name: typing.Optional[str]=None,
+    group: typing.Optional[str]=None,
+    discover: typing.Callable=_discover_entry_points,
+) -> typing.List[EntryPoint]:
+```
+
+Get the entry points for the given filter options.
+
+Parameters:
+
+* `name` - the entry point name to filter by.  If none, no name filter will be used.
+* `group` - the entry point group name to filter by  If none, no name filter will be used.
+* `discover` - a function, taking no arguments, which returns EntryPoint objects for all
+    the entry points on the system.  The default value is good enough for most cases,
+    but this dependency is exposed for testing or advanced use.
+
+Returns: a list of entry points that passed the filter.
+
+If both name and group are left empty, all discovered entry points will be returned.
+
+## function: `load_all_plugins_for`
+
+```python
+def load_all_plugins_for(
+    interface: type, *,
+    get_filtered: typing.Callable=get_entry_points,
+) -> typing.List[type]:
+```
+
+Load the plugins for the given interface.
+
+Parameters:
+* `interface` - a class to use both as the source of correct group/name
+    attributes for target plugins, but also as the base class for
+    validating those plugins on load.
+* `get_filtered` - a function, taking group and name arguments, and returning
+    a list of EntryPoint objects that match.  The default value is good
+    enough for most cases, but this dependency is exposed for testing or
+    advanced use.
+
+Returns a list of plugins which match the interface.
+
+Plugins are found according to the following rules:
+* in a group matching the root module the interface is defined in.
+* has a name matching the name of the interface.
+* is a subclass of the interface.
+
+## function: `load_best_plugin_for`
+
+```python
+def load_best_plugin_for(
+    interface: type, *,
+    resolve_conflict: typing.Callable[..., type]=_get_external_plugin,
+    load_all: typing.Callable=load_all_plugins_for,
+) -> type:
+```
+
+Load the plugin for the given interface.
+
+Parameters:
+
+* `interface` - a class to use both as the source of correct group/name
+    attributes for target plugins, but also as the base class for
+    validating those plugins on load.
+* `resolve_conflict` - a function, taking a list of plugins and an interface,
+    and returning a single plugin.  The default value returns the only plugin
+    defined in a different root module than the given interface, if there is
+    only one.  Else it raises a RuntimeError.  This is exposed with the expectation
+    that while this behavior is generally correct, there are going to be exceptions,
+    and it may not always be sufficient, and callers will want to supply custom
+    implementations for those cases.
+* `load_all` - a function, taking an interface argument, and returning
+    a list of EntryPoint objects that match.  The default value is good
+    enough for most cases, but this dependency is exposed for testing or
+    advanced use.
+
+Returns the single plugin which matches the interface and survives conflict resolution.
+
+Plugins are found according to the following rules:
+* in a group matching the root module the interface is defined in.
+* has a name matching the name of the interface.
+* is a subclass of the interface.
+* is chosen by the resolve_conflict function, if there are multiple matching plugins.
+
+# Discussion
+
+## Why does this library exist?
+
+This library mainly exists because I've been trying different ways to decouple code and
+manage things like dependency injection, and plugins keep popping up as a good route, and
+I wanted something simple and flexible, and I didn't find that already out there.
+
+## Why do the `load` functions take classes?
+
+The `load` functions take classes for the sake of callsite simplicity (a single argument
+that completely identifies plugin definitions) and plugin validation (plugins must be
+subclasses of the single argument).
+
+To be useful, a plugin's expected API's need to be documented.  Doing this via a base class
+seems like an obvious choice.  Further, this allows us to use the root module the base class
+is defined in for the entry point group, and the name of the base class for the entry point
+name, and to validate the expected API has been met.
+
+With `plugger`, we do:
+
+```python
+# awesome_app
+UserInterface = plugger.load_best_plugin(awesome_app.plugin_interfaces.UserInterface)
+```
+
+That hides the complexity of:
+
+* discovering the installed entry points
+* filtering them by desired group and name
+* resolving possible conflicts between a default implementation and an external plugin
+* loading the plugin from the entry point
+* validating the plugin meets a desired API
+
+## Why validate that a plugin is a subclass?
+
+AKA, why not use duck typing?  Validating the plugin is a subclass provides better safeguards
+against incomplete or incorrectly implemented plugins at plugin load time.  EAFP (Easier to Ask
+Forgiveness than Permission) is cool and all, but we're not expecting the availability of plugin
+methods or attributes to change at runtime, so why not detect garbage inputs early?
+
+If you feel like this is too limiting, you can still use this library and just use the `get_entry_points`
+function instead.
+
+## Why use setuptools entry points?
+
+Plugger uses setuptools entry points to discover/define plugins because they exist.  Unless absolutely
+necessary, I don't want to reinvent that wheel, especially because discovering and loading python functions
+from installed packages is full of corner cases and pitfalls.
+
+## `load_best_plugin_for` vs `load_all_plugins_for` with custom confilct resolver
+
+To resolve many matched plugins down to a single "best" plugin with a custom conflict resolver,
+you can either pass the resolver to `load_best_plugin_for` or just get all the plugins via
+`load_all_plugins_for` and then pass those to a custom resolver in another step.
+
+The first path has a slight edge in that the resolver will not be called if only one plugin is found,
+whereas the second path requires you to either write that conditional into your resolver or handle it manually
+yourself.  The first path is also a single call, vs at least two calls in your code for the second path.
+
+The second path is the more flexible one, however - there's no call signature for your custom resolve to adhere
+to, you can store the winner *and* the losers (perhaps for access later?), and you can perform the resolution
+whenever you want, rather than requiring resolution immediately.
+
+Which to choose ultimately comes down to your needs and personal preference.
+
+## Why not use some other plugin manager?
+
+### `pike`
+
+Pike uses the filesystem and imported modules to identify plugin classes.  That requires you to know exactly where
+your plugins are (filesystem method) or what modules they're in (imported modules method).  Those are both less flexible
+methods than using setuptools entry points (which only require you to install the package to have them found).  The
+filesystem method seems a bit insecure to me (the app loading the plugin can scan and load any class from anywhere it has access to
+in your filesystem, without you knowing where it might be loading & executing code from).  Plugger is a bit more secure in
+that the plugin must be declared, and the scan space is more restricted (installed packages in your environment rather than
+the whole filesystem).  I may be missing something there, but it seems safer and more flexible to do things the Plugger way.
+
+### `stevedore`
+
+Stevedore uses setuptools for plugin identification, similarly to `plugger`.  I wrote `plugger` as a way to get the flexibility and
+relative safety `stevedore` supplies with a simpler footprint/API.  Stevedore has 9 plugin manager classes for use in different plugin
+scenarios, which allow different kinds of plugin discovery, loading, and verification for 3 distinct types of plugins `stevedore` defines.
+
+I greatly appreciate their documentation's analysis of differing plugin types and uses and methodologies in use by different libraries to
+define/discover/load plugins, but at the end of the day, `stevedore` seemed unnecessarily complex.  I wondered if maybe I was missing something,
+and that's part of why I wrote `plugger`.  So far, my assessment stands.  That complexity isn't required to have a flexible plugin manager.
+
+`stevedore` also explicitly takes an EAFP stance to plugin validation, opting to let you perform stronger validation if you want to as the caller.
+Plugger takes the opposite approach - performing validation by default, and allowing you to bypass it if you don't want that.
+
+## Loading arbitrary endpoints
+
+It's fully expected that users will want to load arbitrary endpoints, and that's what the `get_entry_points` function is for.  Specify a group, or
+a name, both, or none, perform any additional filtering/validation you want on the returned entry points, load them up, perform
+any additional validation or filtering you want, and use them however you want.
+
+Plugins loaded this way can be anything that can be specified as setuptools entry points, including modules, classes, functions, and objects.
