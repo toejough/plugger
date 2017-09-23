@@ -1,11 +1,11 @@
 Setuptools entry-points-based plugin library.
 
-* [Features](features)
-* [High-/low-level API's](apis)
-* [How-To Examples](howto)
-* [Tutorial](tutorial)
-* [API Docs](docs)
-* [Discussion](discussion)
+* [Features](#features)
+* [High-/low-level API's](#apis)
+* [How-To Examples](#howto)
+* [Tutorial](#tutorial)
+* [API Docs](#docs)
+* [Discussion](#discussion)
 
 <a name='features' />
 
@@ -40,7 +40,7 @@ Setuptools entry-points-based plugin library.
 
 # Specific How-To Examples
 
-The [tutorial](tutorial) takes advantage of the plugin interface and implementations provided in `example_plugins`.  The below walks you through creating your own, as well as more examples of using the API.
+The [tutorial](#tutorial) takes advantage of the plugin interface and implementations provided in `example_plugins`.  The below walks you through creating your own, as well as more examples of using the API.
 
 ## Defining A Plugin Interface
 
@@ -194,7 +194,7 @@ If that functionality isn't enough, you may also access the raw `pkg_resources.E
 
 # Tutorial
 
-The [how-to's](howto) give a good high-level overview of what's possible with this library,
+The [how-to's](#howto) give a good high-level overview of what's possible with this library,
 but if you want a hands-on example, here it is.  This tutorial uses the `example_plugins` directory.
 This will get you up to speed with what is a plugin interface, a plugin, an entry point, and how to use the API's plugger provides.
 
