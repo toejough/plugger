@@ -8,6 +8,7 @@ Setuptools entry-points-based plugin library.
 * [Discussion](discussion)
 
 <a name='features' />
+
 # Features
 
 * Discovery:
@@ -26,6 +27,7 @@ Setuptools entry-points-based plugin library.
     an exception if there are still more than 1.
 
 <a name='apis' />
+
 # High-/low-level API's
 
 * high level:
@@ -35,6 +37,7 @@ Setuptools entry-points-based plugin library.
     * `get_entry_points`: get all entry points, optionally filtered by group & name
 
 <a name='howto' />
+
 # Specific How-To Examples
 
 The [tutorial](tutorial) takes advantage of the plugin interface and implementations provided in `example_plugins`.  The below walks you through creating your own, as well as more examples of using the API.
@@ -188,6 +191,7 @@ Once you have entry points, you can inspect them for things like source package 
 If that functionality isn't enough, you may also access the raw `pkg_resources.EntryPoint` object via `entry_point.raw`.
 
 <a name='tutorial' />
+
 # Tutorial
 
 The [how-to's](howto) give a good high-level overview of what's possible with this library,
@@ -251,6 +255,7 @@ This will get you up to speed with what is a plugin interface, a plugin, an entr
     ```
 
 <a name='docs' />
+
 # API Docs
 
 * [EntryPoint](entrypoint) class
@@ -259,6 +264,7 @@ This will get you up to speed with what is a plugin interface, a plugin, an entr
 * [get_entry_points](get-eps) function
 
 <a name='entrypoint' />
+
 ## class: `EntryPoint`
 
 Entry point object.
@@ -323,6 +329,7 @@ Load the plugin from the entry point.
 
 
 <a name='get-eps' />
+
 ## function: `get_entry_points`
 
 ```python
@@ -349,6 +356,7 @@ Returns: a list of entry points that passed the filter.
 If both name and group are left empty, all discovered entry points will be returned.
 
 <a name='load-all' />
+
 ## function: `load_all_plugins_for`
 
 ```python
@@ -377,6 +385,7 @@ Plugins are found according to the following rules:
 * is a subclass of the interface.
 
 <a name='load-best' />
+
 ## function: `load_best_plugin_for`
 
 ```python
@@ -415,6 +424,7 @@ Plugins are found according to the following rules:
 * is chosen by the resolve_conflict function, if there are multiple matching plugins.
 
 <a name='discussion' />
+
 # Discussion
 
 ## Why does this library exist?
