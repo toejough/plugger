@@ -25,7 +25,69 @@ Setuptools entry-points-based plugin library.
 * low level:
     * `get_entry_points`: get all entry points, optionally filtered by group & name
 
-# Examples
+# Tutorial
+
+Dive right in with the `example_plugins` directory.  This will quickly get you up to speed with what is a plugin interface, a plugin, an entry point, and how to use the API's plugger provides.
+
+1. clone this repo `git clone git@github.com:toejough/plugger.git`
+1. cd in `cd plugger`
+1. install the example packages `pip install example_plugins/*`
+1. launch the interactive python shell `python`
+1. import `foo` and `plugger`
+    ```
+    >>> import foo
+    >>> import plugger
+    ```
+1. load all the plugins on the system that implement the `foo.Base` interface
+    ```
+    >>> all_bases = plugger.load_all_plugins_for(foo.Base)
+    >>> all_bases
+    [<class 'other.Bar'>, <class 'foo.Bar'>]
+    >>> all_bases[0]().bar()
+    'other bar'
+    >>> all_bases[1]().bar()
+    'foo bar'
+    ```
+1. load just the best plugin (by default, the external plugin)
+    ```
+    >>> best = plugger.load_best_plugin_for(foo.Base)
+    >>> best
+    <class 'other.Bar'>
+    >>> bar = best()
+    >>> bar
+    <other.Bar object at 0x10c49dc18>
+    >>> bar.bar()
+    'other bar'
+    ```
+1. get the entry points for `foo.Base`
+    ```
+    >>> entry_points = plugger.get_entry_points(group='foo', name='Base')
+    >>> entry_points
+    [other:foo:Base (0.1.0), foo:foo:Base (0.1.0)]
+    ```
+1. load a plugin from an entry point
+    ```
+    >>> other_entry_point = entry_points[0]
+    >>> other_entry_point
+    other:foo:Base (0.1.0)
+    >>> OtherBar = other_entry_point.load()
+    >>> OtherBar
+    <class 'other.Bar'>
+    >>> other_bar = OtherBar()
+    >>> other_bar
+    <other.Bar object at 0x10c49df28>
+    >>> other_bar.bar()
+    'other bar'
+    ```
+1. get all installed entry points
+    ```
+    >>> plugger.get_entry_points()
+    [wheel:console_scripts:wheel (0.30.0), wheel:distutils.commands:bdist_wheel (0.30.0), vulture:console_scripts:vulture (0.26), twine:console_scripts:twine (1.9.1), twine:twine.registered_commands:register (1.9.1), twine:twine.registered_commands:upload (1.9.1), ...
+    ```
+
+# Specific How-To Examples
+
+The above tutorial takes advantage of the plugin interface and implementations provided in `example_plugins`.  The below walks you through creating your own, as well as more examples of using the API.
 
 ## Defining A Plugin Interface
 
