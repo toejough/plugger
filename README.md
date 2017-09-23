@@ -1,5 +1,13 @@
 Setuptools entry-points-based plugin library.
 
+* [Features](features)
+* [High-/low-level API's](apis)
+* [How-To Examples](howto)
+* [Tutorial](tutorial)
+* [API Docs](docs)
+* [Discussion](discussion)
+
+<a name='features' />
 # Features
 
 * Discovery:
@@ -17,6 +25,7 @@ Setuptools entry-points-based plugin library.
     The default resolver prefers non-internal plugins, then raises
     an exception if there are still more than 1.
 
+<a name='apis' />
 # High-/low-level API's
 
 * high level:
@@ -25,9 +34,10 @@ Setuptools entry-points-based plugin library.
 * low level:
     * `get_entry_points`: get all entry points, optionally filtered by group & name
 
+<a name='howto' />
 # Specific How-To Examples
 
-The above tutorial takes advantage of the plugin interface and implementations provided in `example_plugins`.  The below walks you through creating your own, as well as more examples of using the API.
+The [tutorial](tutorial) takes advantage of the plugin interface and implementations provided in `example_plugins`.  The below walks you through creating your own, as well as more examples of using the API.
 
 ## Defining A Plugin Interface
 
@@ -177,9 +187,10 @@ Once you have entry points, you can inspect them for things like source package 
 
 If that functionality isn't enough, you may also access the raw `pkg_resources.EntryPoint` object via `entry_point.raw`.
 
+<a name='tutorial' />
 # Tutorial
 
-The how-to's give a good high-level overview of what's possible with this library,
+The [how-to's](howto) give a good high-level overview of what's possible with this library,
 but if you want a hands-on example, here it is.  This tutorial uses the `example_plugins` directory.
 This will get you up to speed with what is a plugin interface, a plugin, an entry point, and how to use the API's plugger provides.
 
@@ -239,8 +250,15 @@ This will get you up to speed with what is a plugin interface, a plugin, an entr
     [wheel:console_scripts:wheel (0.30.0), wheel:distutils.commands:bdist_wheel (0.30.0), vulture:console_scripts:vulture (0.26), twine:console_scripts:twine (1.9.1), twine:twine.registered_commands:register (1.9.1), twine:twine.registered_commands:upload (1.9.1), ...
     ```
 
+<a name='docs' />
 # API Docs
 
+* [EntryPoint](entrypoint) class
+* [load_best_plugin_for](load-best) function
+* [load_all_plugins_for](load-all) function
+* [get_entry_points](get-eps) function
+
+<a name='entrypoint' />
 ## class: `EntryPoint`
 
 Entry point object.
@@ -304,6 +322,7 @@ def load() -> typing.Any
 Load the plugin from the entry point.
 
 
+<a name='get-eps' />
 ## function: `get_entry_points`
 
 ```python
@@ -329,6 +348,7 @@ Returns: a list of entry points that passed the filter.
 
 If both name and group are left empty, all discovered entry points will be returned.
 
+<a name='load-all' />
 ## function: `load_all_plugins_for`
 
 ```python
@@ -356,6 +376,7 @@ Plugins are found according to the following rules:
 * has a name matching the name of the interface.
 * is a subclass of the interface.
 
+<a name='load-best' />
 ## function: `load_best_plugin_for`
 
 ```python
@@ -393,6 +414,7 @@ Plugins are found according to the following rules:
 * is a subclass of the interface.
 * is chosen by the resolve_conflict function, if there are multiple matching plugins.
 
+<a name='discussion' />
 # Discussion
 
 ## Why does this library exist?
