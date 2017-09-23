@@ -127,6 +127,6 @@ all_foo_entry_points = plugger.get_entry_points(name='foo')
 all_entry_points = plugger.get_entry_points()
 ```
 
-Once you have entry points, you can inspect them for things like source package, source package version, group name, or entry point name.  You can also load the plugin via `load`.
+Once you have entry points, you can inspect them for things like source package (`entry_point.package`), source package version (`entry_point.version`), group name (`entry_point.group`), or entry point name (`entry_point.name`).  You can also load the plugin via `entry_point.load()`.
 
-If that functionality isn't enough, you may also access the raw `pkg_resources.EntryPoint` oject via `raw`.
+If that functionality isn't enough, you may also access the raw `pkg_resources.EntryPoint` object via `entry_point.raw`.
