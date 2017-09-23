@@ -18,7 +18,18 @@ def _get_external_plugin(
         plugins: typing.Sequence[type], *,
         interface: type,
 ) -> type:
-    """Return the single external plugin if possible, or raise an exception."""
+    """
+    Return the single external plugin if possible, or raise an exception.
+
+    Parameters:
+        plugins - plugins to choose from
+        interface - the interface the plugins implement
+
+    Returns the single external plugin in `plugins`
+
+    Raises:
+        RuntimeError if there are multiple external plugins
+    """
     external_plugins = []
     for this_plugin in plugins:
         interface_module = interface.__module__.split('.')[0]
@@ -38,7 +49,20 @@ def _discover_entry_points(
     get_group_map: typing.Callable = pkg_resources.get_entry_map,
     iterate_distributions: typing.Callable = pkg_resources.Environment,
 ) -> typing.List["EntryPoint"]:
-    """Discover entry points."""
+    """
+    Discover entry points.
+
+    Parameters:
+        get_group_map - a function which is expected to take a string argument
+            (the distribution/package to scan for entry points), and return a
+            dictionary/map like {group1: {entry_point_name1: entry_point1, ...}, ...}
+            where the group names and entry_point names are strings, and the
+            entry points are pkg_resources.EntryPoint objects.
+        iterate_distributions - a function which is expected to take no arguments,
+            and return an iterable of strings representing installed distriutions/packages.
+
+    Returns a list of EntryPoint objects.
+    """
     entry_points = []
     for distribution in iterate_distributions():
         for group, entry_point_map in get_group_map(distribution).items():
